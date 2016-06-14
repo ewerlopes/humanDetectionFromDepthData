@@ -68,7 +68,7 @@ vector<Mat> pyramid(Mat image, float scale=0.5, int minWidth = 30, int minHeight
 }
 
 int main(int argc, char * argv[]){
-	int width = 512;
+    int width = 512;
     int height = 424;
     Mat img = ReadMatFromTxt("./frame/string15.txt", height, width);
     unsigned short min = 500;

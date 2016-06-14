@@ -2,12 +2,14 @@
 #include <fstream>
 #include <sys/stat.h>
 #include "opencv2/opencv.hpp"
-#include <stdio.h>
-#include <stdlib.h>
 #include <string>
 #include <ctime>
 #include <vector>
 #include <glob.h>
+#include <signal.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <unistd.h>
 
 using namespace std;
 using namespace cv;
@@ -18,10 +20,57 @@ Rect cropRect(0,0,0,0);
 Point P1(0,0);
 Point P2(0,0);
 
+vector<string> files;
 const char* winName="Original Image";
 bool clicked=false;
-int i=0;
-char imgName[15];
+int i=0;// for counter for files.
+
+void saveLog(){
+	cout << "Exiting and saving log..." << endl;
+	cout << "Verifying if ./log directory exists..." << endl;
+
+	struct stat sb;
+	if (stat("./log", &sb) == 0 && S_ISDIR(sb.st_mode))
+	{
+		cout << "./log directory exists!" << endl;
+		cout << "Skipping directory creation..." << endl;
+	}else{
+		cout << "./log directory does not exists!" << endl;
+		cout << "creating ./log directory... ";
+		const int dir_err = mkdir("log", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+		if (-1 == dir_err)
+		{
+			cout << "Error creating directory!" << endl;
+			cout << "LOG FILE COULD NOT BE CREATED!!!";
+			exit(1);
+		}
+		cout << "DONE!" << endl;
+	}
+	
+	cout << "Saving log... " << endl;
+	time_t t = time(0);   // get time now
+	struct tm * now = localtime( & t );
+	ofstream log;
+	log.open ("./log/log.txt");
+	log << (now->tm_year + 1900) << '-' 
+		<< (now->tm_mon + 1) << '-'
+		<< now->tm_mday << " -- "
+		<< now->tm_hour << ':'
+		<< now->tm_min << ':'
+		<< now->tm_sec
+		<< "$:\t current image: "
+		<< files[i] << "\n";
+	cout << "DONE" << endl;
+	log.close();
+	cout << "Program exit with success!" << endl;
+	exit(0);
+}
+
+void onInterrupt(int s){
+	cout << "User interruption detected!" << endl;
+	saveLog();
+	exit(1); 
+}
 
 Mat createColorMap(Mat img){
     unsigned short min = 500;
@@ -199,12 +248,19 @@ Mat ReadDepthImageFromTxt(string filename, int height,int width)
 
 int main()
 {
-	vector<string> files = globVector("*.txt");
+
+	struct sigaction sigIntHandler;
+    sigIntHandler.sa_handler = onInterrupt;
+    sigemptyset(&sigIntHandler.sa_mask);
+    sigIntHandler.sa_flags = 0;
+    sigaction(SIGINT, &sigIntHandler, NULL);
+
+	files = globVector("*.txt");
     showHelp();
 	int width = 512;
     int height = 424;
 
-	for (int i=0;i< files.size(); i++){
+	for (i=0;i< files.size(); i++){
 		src = ReadDepthImageFromTxt(files[i], height, width);
 		Mat depthImage = createColorMap(src);
 		
@@ -214,9 +270,27 @@ int main()
 		while(1){
 			char c=waitKey();
 			if(c=='s'&&ROI.data){
-		 		sprintf(imgName,"%d.txt",i++);
-		 		writeMatToFile(ROI,imgName);
-		 		cout <<"  Saved "<<imgName<<endl;
+		 		
+				std::stringstream output;
+	 			output << "./dataset/" << i << ".txt";
+				struct stat sb;
+				if (stat("./dataset", &sb) == 0 && S_ISDIR(sb.st_mode))
+				{
+					cout << "./dataset directory exists!" << endl;
+					cout << "Skipping directory creation..." << endl;
+				}else{
+					cout << "./dataset directory does not exists!" << endl;
+					cout << "creating ./dataset directory... ";
+					const int dir_err = mkdir("dataset", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+					if (-1 == dir_err)
+					{
+						cout << "Error creating directory!" << endl;
+						exit(1);
+					}
+				}
+				cout << "DONE!" << endl;
+				writeMatToFile(ROI,output.str().c_str());
+		 		cout <<"/t"<< output << "was saved in ./dataset!" << endl;
 			}
 
 			if(c=='n'){
@@ -248,45 +322,9 @@ int main()
 			if(c=='f') { cropRect.x++; cropRect.width--;}
 
 			if(c==27){
-				cout << "Exiting and saving log..." << endl;
- 				cout << "Verifying if ./log directory exists..." << endl;
-
-				struct stat sb;
-				if (stat("./log", &sb) == 0 && S_ISDIR(sb.st_mode))
-				{
-					cout << "./log directory exists!" << endl;
-					cout << "Skipping directory creation..." << endl;
-				}else{
-					cout << "./log directory does not exists!" << endl;
-					cout << "creating ./log directory... ";
-					const int dir_err = mkdir("log", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
-					if (-1 == dir_err)
-					{
-						cout << "Error creating directory!" << endl;
-						cout << "LOG FILE COULD NOT BE CREATED!!!";
-						exit(1);
-					}
-					cout << "DONE!" << endl;
-				}
-				
-				cout << "Saving log... " << endl;
-				time_t t = time(0);   // get time now
-				struct tm * now = localtime( & t );
-				ofstream log;
-				log.open ("./log/log.txt");
-				log << (now->tm_year + 1900) << '-' 
-					<< (now->tm_mon + 1) << '-'
-					<< now->tm_mday << " -- "
-					<< now->tm_hour << ':'
-					<< now->tm_min << ':'
-					<< now->tm_sec
-					<< "$:\t current image: "
-					<< files[i] << "\n";
-				cout << "DONE" << endl;
-				log.close();
-				cout << "Program exit with success!" << endl;
-				exit(0);
+				saveLog();
 			}
+
 			if(c=='r') {cropRect.x=0;cropRect.y=0;cropRect.width=0;cropRect.height=0;}
 	 	    showImage();
 		}
