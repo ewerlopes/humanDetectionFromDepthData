@@ -3,10 +3,32 @@
 #include "opencv2/opencv.hpp"
 #include <tuple>
 #include <string>
+#include <chrono>
+#include <thread>
 
 using namespace std;
 using namespace cv;
 
+
+void writeMatToFile(cv::Mat& m, const char* filename)
+{
+    ofstream fout(filename);
+    if(!fout)
+    {
+        cout<<"File Not Opened"<<endl;  return;
+    }
+
+	fout << m.size().width << " " << m.size().height << endl;
+    for(int i=0; i<m.rows; i++)
+    {
+        for(int j=0; j<m.cols; j++)
+        {
+            fout<<m.at<float>(i,j)<<"\t";
+        }
+        fout<<endl;
+    }
+    fout.close();
+}
 
 Mat ReadMatFromTxt(string filename, int rows,int cols)
 {
@@ -26,7 +48,7 @@ Mat ReadMatFromTxt(string filename, int rows,int cols)
 }
 
 
-vector<Rect> get_sliding_windows(Mat& image,int winWidth,int winHeight)
+vector<Rect> sliding_window(Mat& image,int winWidth,int winHeight)
 {
   vector<Rect> rects;
   int step = 16;
@@ -36,6 +58,7 @@ vector<Rect> get_sliding_windows(Mat& image,int winWidth,int winHeight)
       for(int j=0;j< image.cols;j+=step)    
       {
           if((j+winWidth)>image.cols){break;}
+		  //cout << j << endl << flush;
           Rect rect(j,i,winWidth,winHeight);
           rects.push_back(rect);
       }
@@ -43,37 +66,40 @@ vector<Rect> get_sliding_windows(Mat& image,int winWidth,int winHeight)
   return rects;
 }
 
-vector<Mat> pyramid(Mat image, float scale=0.5, int minWidth = 30, int minHeight = 30){
-	vector<Mat> images;
-	images.push_back(image);	
+void pyramid(Mat image, vector<Mat>& results, float scale=0.75, int minWidth = 150, int minHeight = 150){
+	
+	results.push_back(image.clone());
 	// keep looping over the pyramid
 	Mat src = image.clone();
 	Mat dst;
 	while(1){
 		// resize image
 		cout << "Resizing..." << endl;
-		resize(src, dst, dst.size(), scale, scale, CV_INTER_AREA);
- 
+		resize(src, dst, Size(), scale, scale, CV_INTER_AREA);
+		
 		// if the resized image does not meet the supplied minimum
 		// size, then stop constructing the pyramid
-		if ((dst.size().height < minHeight) || (dst.size().width < minWidth))
+		if ((dst.size().height < minHeight) || (dst.size().width < minWidth)){
 			cout << "reached minimum" << endl;			
 			break;
- 		
-		cout << "Heigt: " << dst.size().height << " Width: " << dst.size().width << endl;
+		}
+ 
+		cout << "Dist --\tHeight: " << dst.size().height << " Width: " << dst.size().width << endl;
 		// stack the next image in the pyramid
-		images.push_back(dst);
-		src = dst.clone();
+		results.push_back(dst.clone());
+		src = dst;
+		cout << "src --\tHeight: " << src.size().height << " Width: " << src.size().width << endl;
 	}
 }
 
 int main(int argc, char * argv[]){
     int width = 512;
     int height = 424;
-    Mat img = ReadMatFromTxt("./frame/string15.txt", height, width);
+    Mat img = ReadMatFromTxt("./frame/string228.txt", height, width);
     unsigned short min = 500;
     unsigned short max = 4500;
 
+	// Applying color map
     cv::Mat img0 = cv::Mat::zeros(img.size().height, img.size().width, CV_8UC1);
     cv::Mat img1;
     double scale = 255.0 / (max - min);
@@ -82,16 +108,35 @@ int main(int argc, char * argv[]){
     img = img1;
     // -------
 
-	vector<Mat> slices = pyramid(img);
-	for(int i=0; slices.size(); i++){
-		imshow(to_string(i),slices[i]);	
+	vector<Mat> slices;
+	pyramid(img, slices);
+	for(int i=0; i < slices.size(); i++){
+		cout << "\n\nLooping through image..." << endl << flush;
+		cout << "Width: " << slices[i].size().width << endl << flush;
+		cout << "Height: " << slices[i].size().height << endl << flush;
+		
+		int winWidth = 128;
+		int winHeight = 128;
+		
+		cout << "SWindow -> \tHeight: " << winHeight << " Width: " << winWidth << endl << flush;
+		vector<Rect> swindows = sliding_window(slices[i], winWidth, winHeight);
+		for(int j=0; j < swindows.size(); j++){
+		
+			/* THIS IS WHERE YOU WOULD PROCESS YOUR WINDOW, SUCH AS APPLYING A
+			   MACHINE LEARNING CLASSIFIER TO CLASSIFY THE CONTENTS OF THE
+			   WINDOW*/
+		
+			// since we do not have a classifier, we'll just draw the window
+			Mat copySlices = slices[i].clone();
+			rectangle(copySlices, swindows[j], Scalar(0,255,0), 1, 8, 2); // the selection green rectangle 
+			imshow("Window",copySlices);
+			char c = waitKey(1);
+			if(c==27){
+				cout << "Skipping..." << endl << flush;				
+				break;
+			}
+			std::this_thread::sleep_for(std::chrono::milliseconds(40));
+		}
 	}
-
-    while(1){
-    imshow("Retrieved", img);
-    char c=waitKey();
-    if (c == 27)
-        break;
- 	}
     return 0;
 }
