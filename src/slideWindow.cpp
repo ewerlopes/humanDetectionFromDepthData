@@ -51,16 +51,12 @@ Mat ReadMatFromTxt(string filename, int rows,int cols)
 vector<Rect> sliding_window(Mat& image,int winWidth,int winHeight){
 	vector<Rect> rects;
 	int step = 16;
-	cout << "SlideWidth: " << image.size().width << endl << flush;
-	cout << "SlideHeight: " << image.size().height << endl << flush;
 	for(int i=0;i<image.size().height;i+=step){
 		if((i+winHeight)>image.size().height){
-			cout << "Broke because i+winHeight is equal to "<< i+winHeight << endl << flush;
 			break;
 		}
     	for(int j=0;j< image.size().width;j+=step){
         	if((j+winWidth)>image.size().width){
-				cout << "Broke because j+winWidth is equal to "<< j+winWidth << endl << flush;
 				break;
 			}
 		 	Rect rect(j,i,winWidth,winHeight);
@@ -84,15 +80,15 @@ void pyramid(Mat image, vector<Mat>& results, float scale=0.75, int minWidth = 1
 		// if the resized image does not meet the supplied minimum
 		// size, then stop constructing the pyramid
 		if ((dst.size().height < minHeight) || (dst.size().width < minWidth)){
-			cout << "reached minimum" << endl;			
+			cout << "Reached minimum size for images!" << endl;
+			cout << "Pyramid created!" << endl;			
 			break;
 		}
  
-		cout << "Dist --\tHeight: " << dst.size().height << " Width: " << dst.size().width << endl;
+		cout << "\tNew img. size --\tHeight: " << dst.size().height << " Width: " << dst.size().width << endl;
 		// stack the next image in the pyramid
 		results.push_back(dst.clone());
 		src = dst;
-		cout << "src --\tHeight: " << src.size().height << " Width: " << src.size().width << endl;
 	}
 }
 
@@ -116,13 +112,13 @@ int main(int argc, char * argv[]){
 	pyramid(img, slices);
 	for(int i=0; i < slices.size(); i++){
 		cout << "\n\nLooping through image..." << endl << flush;
-		cout << "Width: " << slices[i].size().width << endl << flush;
-		cout << "Height: " << slices[i].size().height << endl << flush;
+		cout << "Img. Width: " << slices[i].size().width << endl << flush;
+		cout << "Img. Height: " << slices[i].size().height << endl << flush;
 		
 		int winWidth = 96;
 		int winHeight = 128;
 		
-		cout << "SWindow -> \tHeight: " << winHeight << " Width: " << winWidth << endl << flush;
+		cout << "SLid. Window -> \tHeight: " << winHeight << " Width: " << winWidth << endl << flush;
 		vector<Rect> swindows = sliding_window(slices[i], winWidth, winHeight);
 		
 		for(int j=0; j < swindows.size(); j++){
@@ -140,7 +136,7 @@ int main(int argc, char * argv[]){
 				cout << "Skipping..." << endl << flush;				
 				break;
 			}
-			std::this_thread::sleep_for(std::chrono::milliseconds(100));
+			//std::this_thread::sleep_for(std::chrono::milliseconds(100));
 		}
 	}
     return 0;
