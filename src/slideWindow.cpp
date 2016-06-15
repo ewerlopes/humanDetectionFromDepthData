@@ -48,22 +48,26 @@ Mat ReadMatFromTxt(string filename, int rows,int cols)
 }
 
 
-vector<Rect> sliding_window(Mat& image,int winWidth,int winHeight)
-{
-  vector<Rect> rects;
-  int step = 16;
-  for(int i=0;i<image.rows;i+=step)
-  {
-      if((i+winHeight)>image.rows){break;}
-      for(int j=0;j< image.cols;j+=step)    
-      {
-          if((j+winWidth)>image.cols){break;}
-		  //cout << j << endl << flush;
-          Rect rect(j,i,winWidth,winHeight);
-          rects.push_back(rect);
-      }
-  } 
-  return rects;
+vector<Rect> sliding_window(Mat& image,int winWidth,int winHeight){
+	vector<Rect> rects;
+	int step = 16;
+	cout << "SlideWidth: " << image.size().width << endl << flush;
+	cout << "SlideHeight: " << image.size().height << endl << flush;
+	for(int i=0;i<image.size().height;i+=step){
+		if((i+winHeight)>image.size().height){
+			cout << "Broke because i+winHeight is equal to "<< i+winHeight << endl << flush;
+			break;
+		}
+    	for(int j=0;j< image.size().width;j+=step){
+        	if((j+winWidth)>image.size().width){
+				cout << "Broke because j+winWidth is equal to "<< j+winWidth << endl << flush;
+				break;
+			}
+		 	Rect rect(j,i,winWidth,winHeight);
+         	rects.push_back(rect);
+		}
+	} 
+	return rects;
 }
 
 void pyramid(Mat image, vector<Mat>& results, float scale=0.75, int minWidth = 150, int minHeight = 150){
@@ -115,11 +119,12 @@ int main(int argc, char * argv[]){
 		cout << "Width: " << slices[i].size().width << endl << flush;
 		cout << "Height: " << slices[i].size().height << endl << flush;
 		
-		int winWidth = 128;
+		int winWidth = 96;
 		int winHeight = 128;
 		
 		cout << "SWindow -> \tHeight: " << winHeight << " Width: " << winWidth << endl << flush;
 		vector<Rect> swindows = sliding_window(slices[i], winWidth, winHeight);
+		
 		for(int j=0; j < swindows.size(); j++){
 		
 			/* THIS IS WHERE YOU WOULD PROCESS YOUR WINDOW, SUCH AS APPLYING A
@@ -128,14 +133,14 @@ int main(int argc, char * argv[]){
 		
 			// since we do not have a classifier, we'll just draw the window
 			Mat copySlices = slices[i].clone();
-			rectangle(copySlices, swindows[j], Scalar(0,255,0), 1, 8, 2); // the selection green rectangle 
+			rectangle(copySlices, swindows[j], Scalar(0,255,0),1,8,0); // the selection green rectangle 
 			imshow("Window",copySlices);
 			char c = waitKey(1);
 			if(c==27){
 				cout << "Skipping..." << endl << flush;				
 				break;
 			}
-			std::this_thread::sleep_for(std::chrono::milliseconds(40));
+			std::this_thread::sleep_for(std::chrono::milliseconds(100));
 		}
 	}
     return 0;
