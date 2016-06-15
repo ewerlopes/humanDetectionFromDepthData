@@ -58,6 +58,12 @@ vector<Rect> get_sliding_windows(Mat& image,int winWidth,int winHeight)
   return rects;
 }
 
+void resizeImage(Mat& img, Mat & dst){
+	Mat src = img.clone();
+	cout << "Resizing..." << endl;
+	resize(src, dst, dst.size(), 0, 0, CV_INTER_AREA);
+}
+
 int main(int argc, char * argv[]){
     int width = 512;
     int height = 424;
@@ -79,12 +85,30 @@ int main(int argc, char * argv[]){
     applyColorMap(img0, img1, cv::COLORMAP_JET);
     img = img1;
     // -------
+	
+	bool showResized = false;
+	Mat resz(Size(48,96),CV_32FC1);
+	
+	cout << "Image " << argv[1] << " loaded!" << endl << flush;
+	cout << "Width: " << width << " -- Height: " << height << endl << flush;
+    cout << "Press r to resize the image!" << endl << endl;
+	while(1){
+   	
+		imshow("Retrieved", img);
 
-    while(1){
-    imshow("Retrieved", img);
-    char c=waitKey();
-    if (c == 27)
-        break;
+		if (showResized){
+			imshow("Resized", resz);
+		}    	
+		char c=waitKey();
+    	if (c == 27)
+        	break;
+		if (c == 'r' && showResized==false){
+			showResized = !showResized;
+			resizeImage(img,resz);
+			cout << "DONE! \t New Width: " << resz.size().width << " -- New Height: "
+				 << resz.size().height
+				 << endl << flush;
+		}
  	}
     return 0;
 }

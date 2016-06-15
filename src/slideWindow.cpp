@@ -110,18 +110,18 @@ int main(int argc, char * argv[]){
 
 	vector<Mat> slices;
 	pyramid(img, slices);
-	for(int i=0; i < slices.size(); i++){
+	for(unsigned int i=0; i < slices.size(); i++){
 		cout << "\n\nScanning image..." << endl << flush;
 		cout << "Img. Width: " << slices[i].size().width << endl << flush;
 		cout << "Img. Height: " << slices[i].size().height << endl << flush;
 		
-		int winWidth = 96;
-		int winHeight = 128;
+		int winWidth = 49;
+		int winHeight = 97;
 		
-		cout << "SLid. Window -> \tHeight: " << winHeight << " Width: " << winWidth << endl << flush;
+		cout << "Sliding Window -> \tHeight: " << winHeight << " Width: " << winWidth << endl << flush;
 		vector<Rect> swindows = sliding_window(slices[i], winWidth, winHeight);
 		
-		for(int j=0; j < swindows.size(); j++){
+		for(unsigned int j=0; j < swindows.size(); j++){
 		
 			/* THIS IS WHERE YOU WOULD PROCESS YOUR WINDOW, SUCH AS APPLYING A
 			   MACHINE LEARNING CLASSIFIER TO CLASSIFY THE CONTENTS OF THE
@@ -136,7 +136,7 @@ int main(int argc, char * argv[]){
 				cout << "Skipping..." << endl << flush;				
 				break;
 			}
-			//std::this_thread::sleep_for(std::chrono::milliseconds(100));
+			//std::this_thread::sleep_for(std::chrono::milliseconds(50));
 		}
 	}
     return 0;
