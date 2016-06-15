@@ -38,19 +38,22 @@ Mat ReadMatFromTxt(string filename)
     return out;
 }
 
-/*Threshold is in mm. So, 30 corresponds to */
+/*Threshold is in mm. So, 30mm corresponds to 3cm*/
 void sltp_descriptor(Mat& image, int threshold = 30){
     float* pPxl;
 	float* cPxl;
 	float* nPxl;
 	float dx, dy;
 	Mat result = image.clone();
+	Mat featImage(Size(image.cols, image.rows), CV_8UC3);
 	for(int y=1;y<(result.size().height-1);y++){
 		pPxl = result.ptr<float>(y-1);
 		cPxl = result.ptr<float>(y);
 		nPxl = result.ptr<float>(y+1);
     	for(int x=1;x<(result.size().width-1);x++){
-		 	dx = cPxl[x+1]-cPxl[x-1];
+			Vec3b & color = featImage.at<Vec3b>(Point(x,y));
+		 	
+			dx = cPxl[x+1]-cPxl[x-1];
 			dy = nPxl[x] - pPxl[x];
 			
 			if (dx >= threshold) dx = 1;
@@ -61,8 +64,28 @@ void sltp_descriptor(Mat& image, int threshold = 30){
 			else if (abs(dy) < threshold) dy=0;
 			else if (dy <= -threshold) dy = -1;
 			
+			/*Getting visible mat file
+				-- Note there's a change in the pixel value
+					from {-1,0,1} to {0,122,155}*/
+			if (dy==1) color[1] = 255;
+			else if (dy == 0) color[1]= 122;
+			else color [1] = 0;
+			
+			if (dx==1) color[0] = 255;
+			else if (dx == 0) color[0]= 122;
+			else color[0] = 0;
+			
+			color[2] = 0;
+			/*--------------*/
+
 			cout << "(" << dx << "," << dy << ")";
 		}
+	}
+	while(1){	
+		imshow("Features",featImage);
+		char c=waitKey();
+		if (c == 27)
+			break;
 	}
 }
 
