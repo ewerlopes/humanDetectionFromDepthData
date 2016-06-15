@@ -65,9 +65,7 @@ void resizeImage(Mat& img, Mat & dst){
 }
 
 int main(int argc, char * argv[]){
-    int width = 512;
-    int height = 424;
-
+    
 	if (argc != 2){
 		cout << "Wrong number of arguments!" << endl;
 		cout << "USAGE: ./imageViewer <filename> " << endl;
@@ -75,6 +73,8 @@ int main(int argc, char * argv[]){
 	}
 
     Mat img = ReadMatFromTxt(argv[1]);
+    
+	/* applying color map
     unsigned short min = 500;
     unsigned short max = 4500;
 
@@ -84,13 +84,13 @@ int main(int argc, char * argv[]){
     img.convertTo(img0, CV_8UC1, scale);
     applyColorMap(img0, img1, cv::COLORMAP_JET);
     img = img1;
-    // -------
+    // ------- */
 	
 	bool showResized = false;
-	Mat resz(Size(48,96),CV_32FC1);
+	Mat resz(Size(64,128),CV_32FC1);
 	
 	cout << "Image " << argv[1] << " loaded!" << endl << flush;
-	cout << "Width: " << width << " -- Height: " << height << endl << flush;
+	cout << "Width: " << img.size().width << " -- Height: " << img.size().height << endl << flush;
     cout << "Press r to resize the image!" << endl << endl;
 	while(1){
    	

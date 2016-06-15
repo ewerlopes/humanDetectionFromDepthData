@@ -115,8 +115,8 @@ int main(int argc, char * argv[]){
 		cout << "Img. Width: " << slices[i].size().width << endl << flush;
 		cout << "Img. Height: " << slices[i].size().height << endl << flush;
 		
-		int winWidth = 49;
-		int winHeight = 97;
+		int winWidth = 64;
+		int winHeight = 128;
 		
 		cout << "Sliding Window -> \tHeight: " << winHeight << " Width: " << winWidth << endl << flush;
 		vector<Rect> swindows = sliding_window(slices[i], winWidth, winHeight);
@@ -136,7 +136,7 @@ int main(int argc, char * argv[]){
 				cout << "Skipping..." << endl << flush;				
 				break;
 			}
-			//std::this_thread::sleep_for(std::chrono::milliseconds(50));
+			std::this_thread::sleep_for(std::chrono::milliseconds(50));
 		}
 	}
     return 0;
