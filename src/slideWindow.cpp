@@ -80,12 +80,12 @@ void pyramid(Mat image, vector<Mat>& results, float scale=0.75, int minWidth = 1
 		// if the resized image does not meet the supplied minimum
 		// size, then stop constructing the pyramid
 		if ((dst.size().height < minHeight) || (dst.size().width < minWidth)){
-			cout << "Reached minimum size for images!" << endl;
-			cout << "Pyramid created!" << endl;			
+			cout << "FAILED TO RESIZE! \t Reached minimum size for images!" << endl;
+			cout << "Pyramid created with success!" << endl;			
 			break;
 		}
  
-		cout << "\tNew img. size --\tHeight: " << dst.size().height << " Width: " << dst.size().width << endl;
+		cout << "DONE!\tNew img. size --\tHeight: " << dst.size().height << " Width: " << dst.size().width << endl;
 		// stack the next image in the pyramid
 		results.push_back(dst.clone());
 		src = dst;
@@ -111,7 +111,7 @@ int main(int argc, char * argv[]){
 	vector<Mat> slices;
 	pyramid(img, slices);
 	for(int i=0; i < slices.size(); i++){
-		cout << "\n\nLooping through image..." << endl << flush;
+		cout << "\n\nScanning image..." << endl << flush;
 		cout << "Img. Width: " << slices[i].size().width << endl << flush;
 		cout << "Img. Height: " << slices[i].size().height << endl << flush;
 		
