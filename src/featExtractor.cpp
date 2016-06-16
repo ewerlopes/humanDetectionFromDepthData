@@ -4,9 +4,20 @@
 #include <boost/algorithm/string.hpp>
 #include <string>
 #include <glob.h>
+#include <cmath>
+#include "compute_histogram.cpp"
 
 using namespace std;
 using namespace cv;
+
+
+float getMagnitude(int x, int y){
+	return sqrt(pow(x,2) + pow(y,2));
+}
+
+float getAngle(int x, int y){
+	return atan2(y,x);
+}
 
 /* To read current directory list files with pattern */
 vector<string> globVector(const string& pattern){
@@ -63,6 +74,8 @@ void sltp_descriptor(Mat& image, int threshold = 30){
 	float dx, dy;
 	Mat result = image.clone();
 	Mat featImage(Size(image.cols, image.rows), CV_8UC3);
+	vector<float> magnitudes;
+	vector<float> angles;
 	for(int y=1;y<(result.size().height-1);y++){
 		pPxl = result.ptr<float>(y-1);
 		cPxl = result.ptr<float>(y);
@@ -81,6 +94,14 @@ void sltp_descriptor(Mat& image, int threshold = 30){
 			else if (abs(dy) < threshold) dy=0;
 			else if (dy <= -threshold) dy = -1;
 			
+			float mag = getMagnitude(dx,dy);
+			float ang = getAngle(dy,dx);	
+			magnitudes.push_back(mag);
+			angles.push_back(ang);
+			
+			cout << "Magnitude: " << mag << endl << flush;
+			cout << "Angle: " << ang << endl << flush;
+			
 			/*Getting visible mat file
 			-- Note there's a change in the pixel value
 				from {-1,0,1} to {0,122,155}*/
@@ -98,6 +119,10 @@ void sltp_descriptor(Mat& image, int threshold = 30){
 			image = featImage;
 			//cout << "(" << dx << "," << dy << ")"; // debug output
 		}
+	}
+	vector<float> hist = getFeatHistogram(magnitudes, angles);
+	for (unsigned int i=0; i < hist.size(); i++){
+		cout << hist[i] << " " << flush;
 	}
 }
 
@@ -136,6 +161,11 @@ int main(int argc, char * argv[]){
 				exit(0);
 			}
 			if (c == 'n'){
+				break;
+			}
+			
+			if (c == 'p'){
+				i = i -2;
 				break;
 			}
 		}
