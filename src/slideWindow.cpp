@@ -115,8 +115,8 @@ int main(int argc, char * argv[]){
 		cout << "Img. Width: " << slices[i].size().width << endl << flush;
 		cout << "Img. Height: " << slices[i].size().height << endl << flush;
 		
-		int winWidth = 64;
-		int winHeight = 128;
+		int winWidth = 128;
+		int winHeight = 256;
 		
 		cout << "Sliding Window -> \tHeight: " << winHeight << " Width: " << winWidth << endl << flush;
 		vector<Rect> swindows = sliding_window(slices[i], winWidth, winHeight);

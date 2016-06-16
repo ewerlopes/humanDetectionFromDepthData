@@ -8,6 +8,12 @@ using namespace std;
 using namespace cv;
 
 
+void resizeImage(Mat& img, Mat & dst){
+	Mat src = img.clone();
+	cout << "Resizing..." << endl;
+	resize(src, dst, dst.size(), 0, 0, CV_INTER_AREA);
+}
+
 Mat ReadMatFromTxt(string filename)
 {
     float m;
@@ -65,8 +71,8 @@ void sltp_descriptor(Mat& image, int threshold = 30){
 			else if (dy <= -threshold) dy = -1;
 			
 			/*Getting visible mat file
-				-- Note there's a change in the pixel value
-					from {-1,0,1} to {0,122,155}*/
+			-- Note there's a change in the pixel value
+				from {-1,0,1} to {0,122,155}*/
 			if (dy==1) color[1] = 255;
 			else if (dy == 0) color[1]= 122;
 			else color [1] = 0;
@@ -77,15 +83,10 @@ void sltp_descriptor(Mat& image, int threshold = 30){
 			
 			color[2] = 0;
 			/*--------------*/
-
-			cout << "(" << dx << "," << dy << ")";
+			
+			image = featImage;
+			//cout << "(" << dx << "," << dy << ")"; // debug output
 		}
-	}
-	while(1){	
-		imshow("Features",featImage);
-		char c=waitKey();
-		if (c == 27)
-			break;
 	}
 }
 
@@ -97,7 +98,24 @@ int main(int argc, char * argv[]){
 		exit(1);
 	}
 
-    Mat img = ReadMatFromTxt(argv[1]);
+    Mat src = ReadMatFromTxt(argv[1]);
+	Mat img = src.clone();
+	cout << "Image " << argv[1] << " loaded!" << endl << flush;
+	cout << "Width: " << img.size().width << " -- Height: " << img.size().height << endl << flush;
 	sltp_descriptor(img);
+
+
+	Mat resz(Size(64,128),CV_32FC1);
+	resizeImage(src,resz);
+	sltp_descriptor(resz);
+
+	while(1){	
+		imshow("Features",img);
+		imshow("Resized", resz);
+		char c=waitKey();
+		if (c == 27)
+			break;
+	}
+
 	return 0;
 }
