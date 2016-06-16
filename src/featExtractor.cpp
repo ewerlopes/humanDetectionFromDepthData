@@ -3,14 +3,25 @@
 #include "opencv2/opencv.hpp"
 #include <boost/algorithm/string.hpp>
 #include <string>
+#include <glob.h>
 
 using namespace std;
 using namespace cv;
 
+/* To read current directory list files with pattern */
+vector<string> globVector(const string& pattern){
+    glob_t glob_result;
+    glob(pattern.c_str(),GLOB_TILDE,NULL,&glob_result);
+    vector<string> files;
+    for(unsigned int i=0;i<glob_result.gl_pathc;++i){
+        files.push_back(string(glob_result.gl_pathv[i]));
+    }
+    globfree(&glob_result);
+    return files;
+}
 
 void resizeImage(Mat& img, Mat & dst){
 	Mat src = img.clone();
-	cout << "Resizing..." << endl;
 	resize(src, dst, dst.size(), 0, 0, CV_INTER_AREA);
 }
 
@@ -92,30 +103,42 @@ void sltp_descriptor(Mat& image, int threshold = 30){
 
 int main(int argc, char * argv[]){
 	
+	/*
 	if (argc != 2){
 		cout << "Wrong number of arguments!" << endl;
 		cout << "USAGE: ./featExtractor <filename> " << endl;
 		exit(1);
+	}*/
+
+	vector<string> files = globVector("*.txt");
+
+	for (unsigned int i=0;i< files.size(); i++){
+		Mat src = ReadMatFromTxt(files[i]);
+		Mat img = src.clone();
+		cout << endl;
+		cout << "Image " << files[i] << " loaded!" << endl << flush;
+		cout << "Width: " << img.size().width << " -- Height: " << img.size().height 
+			 << endl << flush;
+		cout << "-- PRESS n TO CONTINUE -- " << endl << flush;
+		sltp_descriptor(img);
+
+
+		Mat resz(Size(64,128),CV_32FC1);
+		resizeImage(src,resz);
+		sltp_descriptor(resz);
+
+		while(1){	
+			imshow("Features",img);
+			imshow("Resized", resz);
+			char c=waitKey();
+			if (c == 27){
+				cout << "**Exiting program upon request" << endl;				
+				exit(0);
+			}
+			if (c == 'n'){
+				break;
+			}
+		}
 	}
-
-    Mat src = ReadMatFromTxt(argv[1]);
-	Mat img = src.clone();
-	cout << "Image " << argv[1] << " loaded!" << endl << flush;
-	cout << "Width: " << img.size().width << " -- Height: " << img.size().height << endl << flush;
-	sltp_descriptor(img);
-
-
-	Mat resz(Size(64,128),CV_32FC1);
-	resizeImage(src,resz);
-	sltp_descriptor(resz);
-
-	while(1){	
-		imshow("Features",img);
-		imshow("Resized", resz);
-		char c=waitKey();
-		if (c == 27)
-			break;
-	}
-
 	return 0;
 }
