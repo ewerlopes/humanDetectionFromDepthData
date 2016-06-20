@@ -17,6 +17,7 @@ add_executable(dCreator src/DatasetCreatorDrag.cpp)
 add_executable(imageViewer src/retrieveMatrix.cpp)
 add_executable(listFiles src/listFiles.cpp)
 add_executable(slideWindow src/slideWindow.cpp)
+add_executable(featExtractor src/featExtractor.cpp)
 
 target_link_libraries(dCreator  ${OpenCV_LIBS}
                                ${CMAKE_THREAD_LIBS_INIT}
@@ -30,6 +31,9 @@ target_link_libraries(listFiles  ${OpenCV_LIBS}
                                ${CMAKE_THREAD_LIBS_INIT}
                                ${freenect2_LIBRARIES})
 target_link_libraries(slideWindow  ${OpenCV_LIBS}
+                               ${CMAKE_THREAD_LIBS_INIT}
+                               ${freenect2_LIBRARIES})
+target_link_libraries(featExtractor  ${OpenCV_LIBS}
                                ${CMAKE_THREAD_LIBS_INIT}
                                ${freenect2_LIBRARIES})
 

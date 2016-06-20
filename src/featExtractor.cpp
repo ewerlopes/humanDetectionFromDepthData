@@ -47,7 +47,7 @@ Mat ReadMatFromTxt(string filename)
     // Read and throw away the first line simply by doing
     // nothing with it and reading again
     getline(fileStream, line);
-	
+
 	vector<string> results;
 	boost::split(results, line, boost::is_any_of(" "));
 	int height = stoi(results[1]);		// height is the second number in the first line
@@ -55,7 +55,7 @@ Mat ReadMatFromTxt(string filename)
     int cnt = 0;//index starts from 0
 
 	Mat out = Mat::zeros(height, width, CV_32FC1);//Matrix to store values
-    
+
 	while (fileStream >> m)
     {
         int temprow = cnt / width;
@@ -82,10 +82,10 @@ void sltp_descriptor(Mat& image, int threshold = 30){
 		nPxl = result.ptr<float>(y+1);
     	for(int x=1;x<(result.size().width-1);x++){
 			Vec3b & color = featImage.at<Vec3b>(Point(x,y));
-		 	
+
 			dx = cPxl[x+1]-cPxl[x-1];
 			dy = nPxl[x] - pPxl[x];
-			
+
 			if (dx >= threshold) dx = 1;
 			else if (abs(dx) < threshold) dx=0;
 			else if (dx <= -threshold) dx = -1;
@@ -93,41 +93,38 @@ void sltp_descriptor(Mat& image, int threshold = 30){
 			if (dy >= threshold) dy = 1;
 			else if (abs(dy) < threshold) dy=0;
 			else if (dy <= -threshold) dy = -1;
-			
-			float mag = getMagnitude(dx,dy);
-			float ang = getAngle(dy,dx);	
-			magnitudes.push_back(mag);
-			angles.push_back(ang);
-			
-			cout << "Magnitude: " << mag << endl << flush;
-			cout << "Angle: " << ang << endl << flush;
-			
+
+			magnitudes.push_back(getMagnitude(dx,dy));
+			angles.push_back(getAngle(dy,dx));
+
 			/*Getting visible mat file
 			-- Note there's a change in the pixel value
 				from {-1,0,1} to {0,122,155}*/
 			if (dy==1) color[1] = 255;
 			else if (dy == 0) color[1]= 122;
 			else color [1] = 0;
-			
+
 			if (dx==1) color[0] = 255;
 			else if (dx == 0) color[0]= 122;
 			else color[0] = 0;
-			
+
 			color[2] = 0;
 			/*--------------*/
-			
+
 			image = featImage;
 			//cout << "(" << dx << "," << dy << ")"; // debug output
 		}
 	}
 	vector<float> hist = getFeatHistogram(magnitudes, angles);
-	for (unsigned int i=0; i < hist.size(); i++){
+	unsigned int histsize = hist.size();
+	cout << "\nHistogram size: " << histsize << endl << flush;
+	for (unsigned int i=0; i < histsize; i++){
 		cout << hist[i] << " " << flush;
 	}
 }
 
 int main(int argc, char * argv[]){
-	
+
 	/*
 	if (argc != 2){
 		cout << "Wrong number of arguments!" << endl;
@@ -142,7 +139,7 @@ int main(int argc, char * argv[]){
 		Mat img = src.clone();
 		cout << endl;
 		cout << "Image " << files[i] << " loaded!" << endl << flush;
-		cout << "Width: " << img.size().width << " -- Height: " << img.size().height 
+		cout << "Width: " << img.size().width << " -- Height: " << img.size().height
 			 << endl << flush;
 		cout << "-- PRESS n TO CONTINUE -- " << endl << flush;
 		sltp_descriptor(img);
@@ -152,18 +149,18 @@ int main(int argc, char * argv[]){
 		resizeImage(src,resz);
 		sltp_descriptor(resz);
 
-		while(1){	
+		while(1){
 			imshow("Features",img);
 			imshow("Resized", resz);
 			char c=waitKey();
 			if (c == 27){
-				cout << "**Exiting program upon request" << endl;				
+				cout << "**Exiting program upon request" << endl;
 				exit(0);
 			}
 			if (c == 'n'){
 				break;
 			}
-			
+
 			if (c == 'p'){
 				i = i -2;
 				break;
