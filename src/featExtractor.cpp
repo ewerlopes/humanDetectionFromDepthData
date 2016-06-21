@@ -145,7 +145,7 @@ int main(int argc, char * argv[]){
 		sltp_descriptor(img);
 
 
-		Mat resz(Size(64,128),CV_32FC1);
+		Mat resz(Size(65,129),CV_32FC1);
 		resizeImage(src,resz);
 		sltp_descriptor(resz);
 
