@@ -2,6 +2,8 @@
 #include<opencv2/opencv.hpp>
 #include<opencv2/highgui/highgui.hpp>
 #include <boost/algorithm/string.hpp>
+#include <cmath>
+#include "compute_histogram.cpp"
 #include<fstream>
 
 using namespace std;
@@ -12,8 +14,7 @@ void resizeImage(Mat& img, Mat & dst){
 	resize(src, dst, dst.size(), 0, 0, CV_INTER_AREA);
 }
 
-Mat ReadMatFromTxt(string filename)
-{
+Mat ReadMatFromTxt(string filename){
     float m;
     ifstream fileStream(filename);
 
@@ -53,6 +54,9 @@ int main(int argc, char * argv[]){
     Mat src = ReadMatFromTxt(argv[1]);
     Mat img = src.clone();
 
+	Mat resz(Size(65,129),CV_32FC1);
+	resize(src, resz, resz.size(), 0, 0, CV_INTER_AREA);
+
     unsigned short min = 500;
     unsigned short max = 4500;
 
@@ -74,26 +78,77 @@ int main(int argc, char * argv[]){
 
     int step = 8;
 
-    for(int i=0;i<img.size().height;i+=step){
-		if((i+step)>img.size().height){
+	vector<float> hists;
+
+	for(int i=1;i<129;i+=step){
+		if((i+step) > 129){
 			break;
 		}
 
-        for(int j=0;j< img.size().width;j+=step){
-        	if((j+step)>img.size().width){
+        for(int j=1;j<65;j+=step){
+        	if((j+step) > 65){
 				break;
 			}
+
 		 	Rect rect(j,i,step,step);
          	rects.push_back(rect);
+			// ===============================
+			// 			STLP descriptor
+			// ===============================
+			float* pPxl;
+			float* cPxl;
+			float* nPxl;
+			float dx, dy;
+			vector<float> magnitudes;
+			vector<float> angles;
+			int threshold = 30;
+			for (int y = i; y < i+step; y++){
+
+				pPxl = resz.ptr<float>(y-1);
+				cPxl = resz.ptr<float>(y);
+				nPxl = resz.ptr<float>(y+1);
+		    	for(int x = j; x < j+step; x++){
+
+					dx = cPxl[x+1]-cPxl[x-1];
+					dy = nPxl[x] - pPxl[x];
+
+					if (dx >= threshold) dx = 1;
+					else if (abs(dx) < threshold) dx=0;
+					else if (dx <= -threshold) dx = -1;
+
+					if (dy >= threshold) dy = 1;
+					else if (abs(dy) < threshold) dy=0;
+					else if (dy <= -threshold) dy = -1;
+
+					magnitudes.push_back(sqrt(pow(dx,2) + pow(dy,2)));
+					angles.push_back(atan2(dy,dx));
+				}
+			}
+			// =====================================
+			// 	Getting the histogram for the cell
+			// =====================================
+			cout << i << "-" << j << endl;
+			cout << "Magnitudes: " << magnitudes.size() << endl;
+			cout << "Angles: " << angles.size() << endl;
+			vector<float> bins = getFeatHistogram(magnitudes,angles);
+			cout << "Cell histogram Size: " << bins.size() << endl;
+			hists.insert(std::end(hists), std::begin(bins), std::end(bins));
+			cout << "All histograms - Size: " << hists.size() << endl;
 		}
 	}
 
     for (int r = 0; r < rects.size();r++) {
-        rectangle(img, rects[r], Scalar(0,255,0),1,8,0); // the selection green rectangle
+		// the selection green rectangle
+        rectangle(resz, rects[r], Scalar(0,255,0),1,8,0);
     }
 
+	std::cout << "Histograms values" << std::endl;
+	for(int g=0; g < hists.size(); g++){
+		std::cout << hists[g] << " ";
+	}
+
     while(1){
-        imshow("Features",img);
+        imshow("Features",resz);
         char c=waitKey();
         if (c == 27){
             cout << "**Exiting program upon request" << endl;
