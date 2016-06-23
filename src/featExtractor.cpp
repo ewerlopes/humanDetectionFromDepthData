@@ -145,13 +145,13 @@ int main(int argc, char * argv[]){
 		sltp_descriptor(img);
 
 
-		Mat resz(Size(65,129),CV_32FC1);
-		resizeImage(src,resz);
-		sltp_descriptor(resz);
+		//Mat resz(Size(65,129),CV_32FC1);
+		//resizeImage(src,resz);
+		//sltp_descriptor(resz);
 
 		while(1){
 			imshow("Features",img);
-			imshow("Resized", resz);
+			//imshow("Resized", resz);
 			char c=waitKey();
 			if (c == 27){
 				cout << "**Exiting program upon request" << endl;

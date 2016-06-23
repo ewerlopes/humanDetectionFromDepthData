@@ -120,6 +120,7 @@ int main(int argc, char * argv[]){
 					else if (abs(dy) < threshold) dy=0;
 					else if (dy <= -threshold) dy = -1;
 
+					//cout << "(" << dx << "," << dy << ")"; // debug output
 					magnitudes.push_back(sqrt(pow(dx,2) + pow(dy,2)));
 					angles.push_back(atan2(dy,dx));
 				}
@@ -127,13 +128,17 @@ int main(int argc, char * argv[]){
 			// =====================================
 			// 	Getting the histogram for the cell
 			// =====================================
-			cout << i << "-" << j << endl;
-			cout << "Magnitudes: " << magnitudes.size() << endl;
-			cout << "Angles: " << angles.size() << endl;
-			vector<float> bins = getFeatHistogram(magnitudes,angles);
-			cout << "Cell histogram Size: " << bins.size() << endl;
-			hists.insert(std::end(hists), std::begin(bins), std::end(bins));
-			cout << "All histograms - Size: " << hists.size() << endl;
+			 cout << endl<<  i << "-" << j << endl;
+			 cout << "Magnitudes: " << magnitudes.size() << endl;
+			 cout << "Angles: " << angles.size() << endl;
+			 vector<float> bins = getFeatHistogram(magnitudes,angles);
+			 std::cout << "Bins: ";
+			 for(int g=0; g < bins.size(); g++){
+			 	std::cout << bins[g] << " ";
+			 }
+			 cout << "\nCell histogram Size: " << bins.size() << endl;
+			 hists.insert(std::end(hists), std::begin(bins), std::end(bins));
+			 cout << "All histograms - Size: " << hists.size() << endl << endl;
 		}
 	}
 
@@ -144,7 +149,10 @@ int main(int argc, char * argv[]){
 
 	std::cout << "Histograms values" << std::endl;
 	for(int g=0; g < hists.size(); g++){
-		std::cout << hists[g] << " ";
+		std::cout << hists[g] << " " << flush;
+		if ((g%9 == 0) && (g!=0)){
+			cout << endl;
+		}
 	}
 
     while(1){
