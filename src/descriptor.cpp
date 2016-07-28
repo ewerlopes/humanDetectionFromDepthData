@@ -86,7 +86,7 @@ vector<float> getFeatHistogram(vector<float>& magnitudes, vector<float>& angles,
 }
 
 
-vector<float> getFeatVector(Mat& srcImage){
+vector<float> getFeatVector(Mat& srcImage, bool showImageAsDebug=false){
 
 	Mat img = srcImage.clone();
 
@@ -147,15 +147,17 @@ vector<float> getFeatVector(Mat& srcImage){
 					//    -- Note there's a change in the pixel value
 					//	  from {-1,0,1} to {0,122,155}
 					******************************************************/
-					if (dy==1) color[1] = 255;
-					else if (dy == 0) color[1]= 122;
-					else color [1] = 0;
+					if(showImageAsDebug){					
+						if (dy==1) color[1] = 255;
+						else if (dy == 0) color[1]= 122;
+						else color [1] = 0;
 
-					if (dx==1) color[0] = 255;
-					else if (dx == 0) color[0]= 122;
-					else color[0] = 0;
+						if (dx==1) color[0] = 255;
+						else if (dx == 0) color[0]= 122;
+						else color[0] = 0;
 
-					color[2] = 0;
+						color[2] = 0;
+					}
 					/*---------------------------------------------------}*/
 				}
 			}
@@ -179,15 +181,17 @@ vector<float> getFeatVector(Mat& srcImage){
 
 	/* NOTE: in order to actually see the image, uncomment the
 	 * following block of code */
-	 for (int r = 0; r < rects.size();r++) {
-		// the selection green rectangle
-		rectangle(featImage, rects[r], Scalar(0,255,0),1,8,0);
-	 }
-	 while(1){
-		imshow("Feat",featImage);
-		char c=waitKey();
-		if (c == 27){
-			break;
+	if (showImageAsDebug){
+		for (int r = 0; r < rects.size();r++) {
+			// the selection green rectangle
+			rectangle(featImage, rects[r], Scalar(0,255,0),1,8,0);
+		}
+		while(1){
+			imshow("Feat",featImage);
+			char c=waitKey();
+			if (c == 27){
+				break;
+			}
 		}
 	}
 

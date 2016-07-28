@@ -1,10 +1,13 @@
-#include<iostream>
-#include<fstream>
+#include <iostream>
+#include <string>
+#include <fstream>
 #include "opencv2/opencv.hpp"
 #include <boost/algorithm/string.hpp>
 #include <string>
 #include <glob.h>
 #include <cmath>
+#include <sys/stat.h>
+#include <unistd.h>
 #include "descriptor.cpp"
 
 using namespace std;
@@ -59,7 +62,79 @@ Mat ReadMatFromTxt(string filename)
 
 int main(int argc, char * argv[]){
 
+    int cflag = 0;
+    int tflag = 0;
+    int cvalue = 0;
+    int index;
+    int c;
+
+    opterr = 0;
+
+    if (argc != 2){
+        cout << "Wrong number of parameters!" << endl;
+        cout << "See help by running: ./featExtractor -h" << endl;
+        exit(-1);
+    }
+
+    while ((c = getopt (argc, argv, "hc:t")) != -1){
+        switch (c)
+        {
+            case 'c':
+                if (tflag){
+                    cerr << "Argument error!" << endl
+                         << "-c and -t are mutually exclusive!";
+                    exit(-1);
+                }
+                cflag = 1;
+                cvalue = atoi(optarg);
+                break;
+            case 't':
+                if (cflag){
+                    cerr << "Argument error!" << endl
+                         << "-c and -t are mutually exclusive!";
+                    exit(-1);
+                }
+                tflag = 1;
+                break;
+            case 'h':
+                cout << "*** FEATURE EXTRACTOR ***" << endl;
+                cout << "\n-c\t: <class> A number to describe the class of the feature.";
+                cout << "\n-t\t: extract features from a unknown class intance.";
+                cout << "\n-h\t: help info." << endl;
+                return 0;
+            case '?':
+                if (optopt == 'c')
+                    fprintf (stderr, "Option -%c requires an argument.\n", optopt);
+                else if (isprint (optopt))
+                    fprintf (stderr, "Unknown option `-%c'.\n", optopt);
+                else
+                    fprintf (stderr,"Unknown option character `\\x%x'.\n", optopt);
+                return 1;
+            default:
+                abort ();
+        }
+    }
+
 	vector<string> files = globVector("*.txt");
+    ofstream featFile;
+
+    struct stat sb;
+	if (stat("./result", &sb) == 0 && S_ISDIR(sb.st_mode))
+	{
+		cout << "./result directory already exists!" << endl;
+		cout << "Skipping directory creation..." << endl;
+	}else{
+		cout << "./result directory does not exists!" << endl;
+		cout << "creating ./result directory... ";
+		const int dir_err = mkdir("result", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+		if (-1 == dir_err)
+		{
+			cout << "Error creating directory!" << endl;
+			exit(1);
+		}
+	}
+
+    featFile.open("./result/features.txt");
 
 	for (unsigned int i=0;i< files.size(); i++){
 		Mat src = ReadMatFromTxt(files[i]);
@@ -74,27 +149,27 @@ int main(int argc, char * argv[]){
 		resizeImage(src,resz);
 
 		vector<float> result = getFeatVector(resz);
-		std::cout << "Histograms values (size: " << result.size() <<")..." << std::endl;
-		for(int g=0; g < result.size(); g++){
-			std::cout << result[g] << " " << flush;
+        //std::stringstream output;
+
+        // putting the class
+        if (!tflag){
+            featFile << argv[1] << "  ";
+        }
+        else{
+            featFile << "1000   ";
+        }
+
+		std::cout << "\nSaving features for " << files[i] << endl
+                  << "Histograms values (size: " << result.size() <<")..." << std::endl;
+
+        for(int g=0; g < result.size(); g++){
+			featFile << (g+1) << ":" << result[g] << " ";
 		}
 
-		// while(1){
-		// 	imshow("Features",resz);
-		// 	char c=waitKey();
-		// 	if (c == 27){
-		// 		cout << "**Exiting program upon request" << endl;
-		// 		exit(0);
-		// 	}
-		// 	if (c == 'n'){
-		// 		break;
-		// 	}
-		//
-		// 	if (c == 'p'){
-		// 		i = i -2;
-		// 		break;
-		// 	}
-		// }
+        featFile << endl;
+        cout << "DONE!" << endl;
 	}
+
+    featFile.close();
 	return 0;
 }

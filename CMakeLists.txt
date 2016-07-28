@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
 project("My Project")
 
 set(CMAKE_CXX_FLAGS "-std=c++11")
+# Set cmake prefix path to enable cmake to find freenect2
+set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} $ENV{HOME}/freenect2/lib/cmake/freenect2)
 
 find_package(OpenCV REQUIRED)
 find_package(Threads REQUIRED)
@@ -18,6 +20,8 @@ add_executable(imageViewer src/retrieveMatrix.cpp)
 add_executable(listFiles src/listFiles.cpp)
 add_executable(slideWindow src/slideWindow.cpp)
 add_executable(featExtractor src/featExtractor.cpp)
+add_executable(depthFrameVisualizer src/viewDepthFrame.cpp)
+
 
 target_link_libraries(dCreator  ${OpenCV_LIBS}
                                ${CMAKE_THREAD_LIBS_INIT}
@@ -34,6 +38,9 @@ target_link_libraries(slideWindow  ${OpenCV_LIBS}
                                ${CMAKE_THREAD_LIBS_INIT}
                                ${freenect2_LIBRARIES})
 target_link_libraries(featExtractor  ${OpenCV_LIBS}
+                               ${CMAKE_THREAD_LIBS_INIT}
+                               ${freenect2_LIBRARIES})
+target_link_libraries(depthFrameVisualizer  ${OpenCV_LIBS}
                                ${CMAKE_THREAD_LIBS_INIT}
                                ${freenect2_LIBRARIES})
 
